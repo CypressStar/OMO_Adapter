@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { PresetRecord } from "../domain/types";
+import { getUiCopy, type UiCopy } from "./i18n";
 
 const MAX_PRESET_NAME_DISPLAY_LENGTH = 30;
 
@@ -12,6 +13,7 @@ function truncatePresetName(name: string) {
 }
 
 interface PresetListProps {
+  copy?: UiCopy;
   presets: PresetRecord[];
   activePresetId: string;
   selectedPresetId: string | null;
@@ -26,6 +28,7 @@ interface PresetListProps {
 export function PresetList(props: PresetListProps) {
   const [draggingPresetId, setDraggingPresetId] = useState<string | null>(null);
   const [dropTargetPresetId, setDropTargetPresetId] = useState<string | null>(null);
+  const copy = props.copy ?? getUiCopy("en");
 
   return (
     <aside className="panel panel-sidebar">
@@ -33,16 +36,13 @@ export function PresetList(props: PresetListProps) {
         <div className="sidebar-header">
           <div>
             <p className="section-label">OMO Adapter</p>
-            <h1>Agent Presets</h1>
+            <h1>{copy.agentPresets}</h1>
           </div>
           <button className="ghost-button" onClick={props.onCreate} type="button">
-            New
+            {copy.newPreset}
           </button>
         </div>
-        <p className="eyebrow">
-          Manage official OMO agent model layouts and switch what gets written to
-          `oh-my-opencode.json`.
-        </p>
+        <p className="eyebrow">{copy.sidebarNote}</p>
         <div className="preset-list">
           {props.presets.map((preset, index) => {
             const isActive = preset.id === props.activePresetId;
@@ -87,7 +87,7 @@ export function PresetList(props: PresetListProps) {
                 <div className="preset-card-head">
                   <div className="preset-card-title">
                     <button
-                      aria-label={`Move preset ${preset.name}`}
+                      aria-label={copy.movePreset(preset.name)}
                       className="drag-handle"
                       draggable
                       onDragStart={(event) => {
@@ -118,13 +118,13 @@ export function PresetList(props: PresetListProps) {
                       <strong>{displayName}</strong>
                     </button>
                   </div>
-                  {isActive ? <span className="active-chip">Active</span> : null}
+                  {isActive ? <span className="active-chip">{copy.active}</span> : null}
                 </div>
-                <p>{preset.description || "No description yet."}</p>
+                <p>{preset.description || copy.noDescriptionYet}</p>
                 <div className="preset-actions">
                   {!isActive ? (
                     <button
-                      aria-label={`Activate preset ${preset.name}`}
+                      aria-label={copy.activatePreset(preset.name)}
                       className="ghost-button action-button"
                       onClick={(event) => {
                         event.stopPropagation();
@@ -132,11 +132,11 @@ export function PresetList(props: PresetListProps) {
                       }}
                       type="button"
                     >
-                      Activate
+                      {copy.activate}
                     </button>
                   ) : null}
                   <button
-                    aria-label={`Duplicate preset ${preset.name}`}
+                    aria-label={copy.duplicatePreset(preset.name)}
                     className="ghost-button action-button"
                     onClick={(event) => {
                       event.stopPropagation();
@@ -144,11 +144,11 @@ export function PresetList(props: PresetListProps) {
                     }}
                     type="button"
                   >
-                    Duplicate
+                    {copy.duplicate}
                   </button>
                   {props.presets.length > 1 ? (
                     <button
-                      aria-label={`Delete preset ${preset.name}`}
+                      aria-label={copy.deletePreset(preset.name)}
                       className="ghost-button action-button danger-button"
                       onClick={(event) => {
                         event.stopPropagation();
@@ -156,7 +156,7 @@ export function PresetList(props: PresetListProps) {
                       }}
                       type="button"
                     >
-                      Delete
+                      {copy.delete}
                     </button>
                   ) : null}
                 </div>

@@ -14,6 +14,10 @@ import {
   savePreset,
   setActivePreset
 } from "../src/integration/app-service.ts";
+import {
+  loadUiPreferences,
+  setUiLanguage
+} from "../src/integration/ui-preferences-service.ts";
 import { getOmoConfigPath } from "../src/domain/config-paths.ts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -115,6 +119,10 @@ app.whenReady().then(() => {
   const disposeConfigWatchers = createConfigWatchers();
 
   ipcMain.handle("app:load-snapshot", () => loadSnapshot());
+  ipcMain.handle("app:load-ui-preferences", () => loadUiPreferences());
+  ipcMain.handle("app:set-language", (_event, language: string) =>
+    setUiLanguage(language as "en" | "zh-CN")
+  );
   ipcMain.handle("app:refresh-provider-catalog", () => refreshProviderCatalog());
   ipcMain.handle("app:save-preset", (_event, preset) => savePreset(preset));
   ipcMain.handle("app:create-preset", () => createPreset());

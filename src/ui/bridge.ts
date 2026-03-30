@@ -1,8 +1,14 @@
 import type { AppSnapshot } from "../integration/contracts";
 import type { PresetRecord } from "../domain/types";
+import type {
+  UiLanguage,
+  UiPreferences
+} from "../domain/ui-preferences";
 
 export interface OmoAdapterBridge {
   loadSnapshot(): Promise<AppSnapshot>;
+  loadUiPreferences(): Promise<UiPreferences>;
+  setLanguage(language: UiLanguage): Promise<UiPreferences>;
   refreshProviderCatalog(): Promise<AppSnapshot>;
   savePreset(preset: PresetRecord): Promise<AppSnapshot>;
   createPreset(): Promise<AppSnapshot>;
@@ -77,6 +83,12 @@ function createDemoBridge(): OmoAdapterBridge {
   return {
     async loadSnapshot() {
       return structuredClone(currentSnapshot);
+    },
+    async loadUiPreferences() {
+      return { language: "en" };
+    },
+    async setLanguage(language) {
+      return { language };
     },
     async refreshProviderCatalog() {
       return structuredClone(currentSnapshot);

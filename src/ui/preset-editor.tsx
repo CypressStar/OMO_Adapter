@@ -2,8 +2,10 @@ import type { DriftState } from "../integration/contracts";
 import { OFFICIAL_AGENTS } from "../domain/agents";
 import type { PresetRecord, ProviderCatalog } from "../domain/types";
 import { resolveProviderModelRefStatus } from "../domain/provider-catalog.ts";
+import { getUiCopy, type UiCopy } from "./i18n";
 
 interface PresetEditorProps {
+  copy?: UiCopy;
   providerCatalog: ProviderCatalog;
   draftPreset: PresetRecord | null;
   drift: DriftState | null;
@@ -17,11 +19,13 @@ interface PresetEditorProps {
 }
 
 export function PresetEditor(props: PresetEditorProps) {
+  const copy = props.copy ?? getUiCopy("en");
+
   if (!props.draftPreset) {
     return (
       <section className="panel panel-editor">
         <div className="panel-scroll">
-          <h2>No preset selected</h2>
+          <h2>{copy.noPresetSelected}</h2>
         </div>
       </section>
     );
@@ -34,25 +38,25 @@ export function PresetEditor(props: PresetEditorProps) {
       <div className="panel-scroll">
         <div className="editor-header">
           <div>
-            <p className="section-label">Preset Editor</p>
+            <p className="section-label">{copy.presetEditor}</p>
             <h2 title={draftPreset.name}>{draftPreset.name}</h2>
             <p className="eyebrow editor-note">
               {props.canApply
-                ? "This preset is active. Saving updates the preset record, and applying writes the edited mapping into OMO."
-                : "This preset is not active. Save your edits here, then use Activate from the preset list to switch and overwrite OMO."}
+                ? copy.activePresetNote
+                : copy.inactivePresetNote}
             </p>
           </div>
           <div className="editor-actions">
             <button className="ghost-button" onClick={props.onSave} type="button">
-              Save Preset
+              {copy.savePreset}
             </button>
             {props.canApply ? (
               <>
                 <button className="ghost-button" onClick={props.onImport} type="button">
-                  Import from file
+                  {copy.importFromFile}
                 </button>
                 <button className="primary-button" onClick={props.onApply} type="button">
-                  Apply
+                  {copy.apply}
                 </button>
               </>
             ) : null}
@@ -62,23 +66,17 @@ export function PresetEditor(props: PresetEditorProps) {
         {props.showDriftWarning && props.drift?.status === "drifted" ? (
           <section className="drift-banner">
             <div>
-              <p className="section-label">Drift Detected</p>
-              <strong>Current OMO file differs from the active preset.</strong>
-              <p>
-                {props.drift.changedAgents.length} agent
-                {props.drift.changedAgents.length === 1 ? "" : "s"} changed.
-              </p>
-              <p className="eyebrow drift-copy">
-                Import the current OMO file into this active preset, or reapply your
-                edited preset to overwrite the file.
-              </p>
+              <p className="section-label">{copy.driftDetected}</p>
+              <strong>{copy.currentOmoDiffers}</strong>
+              <p>{copy.changedAgents(props.drift.changedAgents.length)}</p>
+              <p className="eyebrow drift-copy">{copy.driftCopy}</p>
             </div>
             <div className="editor-actions">
               <button className="ghost-button" onClick={props.onImport} type="button">
-                Import from file
+                {copy.importFromFile}
               </button>
               <button className="primary-button" onClick={props.onReapply} type="button">
-                Apply
+                {copy.apply}
               </button>
             </div>
           </section>
@@ -86,7 +84,7 @@ export function PresetEditor(props: PresetEditorProps) {
 
         <div className="editor-meta">
           <label className="field">
-            <span>Name</span>
+            <span>{copy.name}</span>
             <input
               value={draftPreset.name}
               onChange={(event) =>
@@ -98,7 +96,7 @@ export function PresetEditor(props: PresetEditorProps) {
             />
           </label>
           <label className="field">
-            <span>Description</span>
+            <span>{copy.description}</span>
             <textarea
               rows={2}
               value={draftPreset.description}
@@ -133,13 +131,13 @@ export function PresetEditor(props: PresetEditorProps) {
                 : props.providerCatalog.providers[modelRefStatus.providerId]?.models ?? [];
             const providerWarning =
               modelRefStatus.kind === "unsupported-provider"
-                ? `Unsupported provider: ${modelRefStatus.providerId}`
+                ? copy.unsupportedProvider(modelRefStatus.providerId)
                 : modelRefStatus.kind === "invalid-format"
-                  ? `Unsupported model reference: ${modelRefStatus.rawValue}`
+                  ? copy.unsupportedModelReference(modelRefStatus.rawValue)
                   : null;
             const modelWarning =
               modelRefStatus.kind === "unsupported-model"
-                ? `Unsupported model: ${modelRefStatus.modelId}`
+                ? copy.unsupportedModel(modelRefStatus.modelId)
                 : null;
 
             return (
@@ -150,7 +148,7 @@ export function PresetEditor(props: PresetEditorProps) {
                 </div>
                 <div className="selector-row">
                   <label className="field compact-field">
-                    <span>Provider</span>
+                    <span>{copy.provider}</span>
                     <select
                       value={providerId}
                       onChange={(event) => {
@@ -172,16 +170,16 @@ export function PresetEditor(props: PresetEditorProps) {
                         });
                       }}
                     >
-                      <option value="">Select provider</option>
+                      <option value="">{copy.selectProvider}</option>
                       {modelRefStatus.kind === "invalid-format" ? (
-                        <option value="__invalid__">Invalid reference</option>
+                        <option value="__invalid__">{copy.invalidReference}</option>
                       ) : null}
                       {modelRefStatus.kind === "unsupported-provider" ? (
                         <option value={modelRefStatus.providerId}>
-                          {modelRefStatus.providerId} (Unavailable)
+                          {copy.unavailableLabel(modelRefStatus.providerId)}
                         </option>
                       ) : null}
-                      <optgroup label="Official providers">
+                      <optgroup label={copy.officialProviders}>
                         {props.providerCatalog.providerOrder
                           .filter(
                             (item) =>
@@ -193,7 +191,7 @@ export function PresetEditor(props: PresetEditorProps) {
                             </option>
                           ))}
                       </optgroup>
-                      <optgroup label="Custom providers">
+                      <optgroup label={copy.customProviders}>
                         {props.providerCatalog.providerOrder
                           .filter(
                             (item) =>
@@ -208,7 +206,7 @@ export function PresetEditor(props: PresetEditorProps) {
                     </select>
                   </label>
                   <label className="field compact-field">
-                    <span>Model</span>
+                    <span>{copy.model}</span>
                     <select
                       value={modelId}
                       onChange={(event) =>
@@ -230,7 +228,7 @@ export function PresetEditor(props: PresetEditorProps) {
                       ) : null}
                       {modelRefStatus.kind === "unsupported-model" ? (
                         <option value={modelRefStatus.modelId}>
-                          {modelRefStatus.modelId} (Unavailable)
+                          {copy.unavailableLabel(modelRefStatus.modelId)}
                         </option>
                       ) : null}
                       {!modelOptions.length && modelRefStatus.kind === "unsupported-provider" ? (

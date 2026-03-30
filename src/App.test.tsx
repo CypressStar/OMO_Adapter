@@ -4,6 +4,7 @@ import App from "./App";
 import { useAppStore } from "./ui/store";
 import type { OmoAdapterBridge } from "./ui/bridge";
 import type { AppSnapshot } from "./integration/contracts";
+import type { UiPreferences } from "./domain/ui-preferences";
 
 const driftedSnapshot: AppSnapshot = {
   providerCatalog: {
@@ -73,6 +74,22 @@ describe("App", () => {
   });
 
   test("renders the preset list and bottom status bar", async () => {
+    window.omoAdapter = {
+      loadSnapshot: async () => syncedSnapshot,
+      loadUiPreferences: async () => ({ language: "en" }),
+      setLanguage: async () => ({ language: "en" }),
+      refreshProviderCatalog: async () => syncedSnapshot,
+      savePreset: async () => syncedSnapshot,
+      createPreset: async () => syncedSnapshot,
+      duplicatePreset: async () => syncedSnapshot,
+      deletePreset: async () => syncedSnapshot,
+      movePreset: async () => syncedSnapshot,
+      setActivePreset: async () => syncedSnapshot,
+      applyActivePreset: async () => syncedSnapshot,
+      importFileToActivePreset: async () => syncedSnapshot,
+      onConfigChanged: () => () => {}
+    } satisfies OmoAdapterBridge;
+
     render(<App />);
     expect(await screen.findByRole("heading", { name: "Default" })).toBeInTheDocument();
     expect(screen.getByText(/active preset/i)).toBeInTheDocument();
@@ -86,6 +103,8 @@ describe("App", () => {
   test("closes the settings menu when clicking outside and shows refresh feedback", async () => {
     window.omoAdapter = {
       loadSnapshot: async () => syncedSnapshot,
+      loadUiPreferences: async () => ({ language: "en" }),
+      setLanguage: async () => ({ language: "en" }),
       refreshProviderCatalog: async () => syncedSnapshot,
       savePreset: async () => syncedSnapshot,
       createPreset: async () => syncedSnapshot,
@@ -117,6 +136,8 @@ describe("App", () => {
   test("shows drift only after saving edits to the active preset", async () => {
     window.omoAdapter = {
       loadSnapshot: async () => driftedSnapshot,
+      loadUiPreferences: async () => ({ language: "en" }),
+      setLanguage: async () => ({ language: "en" }),
       refreshProviderCatalog: async () => driftedSnapshot,
       savePreset: async () => driftedSnapshot,
       createPreset: async () => driftedSnapshot,
@@ -154,6 +175,8 @@ describe("App", () => {
 
     window.omoAdapter = {
       loadSnapshot: async () => currentSnapshot,
+      loadUiPreferences: async () => ({ language: "en" }),
+      setLanguage: async () => ({ language: "en" }),
       refreshProviderCatalog: async () => currentSnapshot,
       savePreset: async () => currentSnapshot,
       createPreset: async () => currentSnapshot,
@@ -184,5 +207,41 @@ describe("App", () => {
     expect(
       screen.queryByText(/current OMO file differs from the active preset/i)
     ).not.toBeInTheDocument();
+  });
+
+  test("switches the UI language from settings and keeps agent names in English", async () => {
+    let currentPreferences: UiPreferences = { language: "en" };
+
+    window.omoAdapter = {
+      loadSnapshot: async () => syncedSnapshot,
+      loadUiPreferences: async () => currentPreferences,
+      setLanguage: async (language) => {
+        currentPreferences = { language };
+        return currentPreferences;
+      },
+      refreshProviderCatalog: async () => syncedSnapshot,
+      savePreset: async () => syncedSnapshot,
+      createPreset: async () => syncedSnapshot,
+      duplicatePreset: async () => syncedSnapshot,
+      deletePreset: async () => syncedSnapshot,
+      movePreset: async () => syncedSnapshot,
+      setActivePreset: async () => syncedSnapshot,
+      applyActivePreset: async () => syncedSnapshot,
+      importFileToActivePreset: async () => syncedSnapshot,
+      onConfigChanged: () => () => {}
+    } satisfies OmoAdapterBridge;
+
+    render(<App />);
+
+    expect(await screen.findByRole("button", { name: /^settings$/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /^settings$/i }));
+    fireEvent.click(screen.getByRole("button", { name: /简体中文/i }));
+
+    expect(await screen.findByRole("button", { name: /设置/i })).toBeInTheDocument();
+    expect(
+      screen.getByText((content) => content.startsWith("当前预设:"))
+    ).toBeInTheDocument();
+    expect(screen.getByText("Sisyphus")).toBeInTheDocument();
   });
 });

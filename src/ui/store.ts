@@ -3,17 +3,23 @@ import { startTransition } from "react";
 import type { PresetRecord } from "../domain/types";
 import type { AppSnapshot } from "../integration/contracts";
 import { getBridge } from "./bridge";
+import {
+  resolveDefaultUiLanguage,
+  type UiLanguage
+} from "../domain/ui-preferences";
 
 interface AppStoreState {
   snapshot: AppSnapshot | null;
   selectedPresetId: string | null;
   draftPreset: PresetRecord | null;
+  language: UiLanguage;
   pendingConflictAction: "save" | "apply" | null;
   status: "idle" | "loading" | "ready" | "error";
   errorMessage: string | null;
   load(): Promise<void>;
   refreshSnapshot(): Promise<void>;
   refreshProviderCatalog(): Promise<void>;
+  setLanguage(language: UiLanguage): Promise<void>;
   selectPreset(presetId: string): void;
   updateDraft(preset: PresetRecord): void;
   persistDraft(): Promise<void>;
@@ -76,6 +82,9 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
   snapshot: null,
   selectedPresetId: null,
   draftPreset: null,
+  language: resolveDefaultUiLanguage(
+    typeof navigator === "undefined" ? undefined : navigator.language
+  ),
   pendingConflictAction: null,
   status: "idle",
   errorMessage: null,
@@ -83,11 +92,15 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
     set({ status: "loading", errorMessage: null });
 
     try {
-      const snapshot = await getBridge().loadSnapshot();
+      const [snapshot, uiPreferences] = await Promise.all([
+        getBridge().loadSnapshot(),
+        getBridge().loadUiPreferences()
+      ]);
 
       startTransition(() => {
         set({
           ...mergeSnapshotIntoState(snapshot, get()),
+          language: uiPreferences.language,
           pendingConflictAction: null,
           status: "ready"
         });
@@ -128,6 +141,20 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
           error instanceof Error
             ? error.message
             : "Failed to refresh provider catalog."
+      });
+    }
+  },
+  async setLanguage(language) {
+    try {
+      const nextPreferences = await getBridge().setLanguage(language);
+      set({
+        language: nextPreferences.language
+      });
+    } catch (error) {
+      set({
+        status: "error",
+        errorMessage:
+          error instanceof Error ? error.message : "Failed to update language."
       });
     }
   },

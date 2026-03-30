@@ -4,6 +4,8 @@ const CONFIG_CHANGED_CHANNEL = "app:config-changed";
 
 contextBridge.exposeInMainWorld("omoAdapter", {
   loadSnapshot: () => ipcRenderer.invoke("app:load-snapshot"),
+  loadUiPreferences: () => ipcRenderer.invoke("app:load-ui-preferences"),
+  setLanguage: (language: string) => ipcRenderer.invoke("app:set-language", language),
   refreshProviderCatalog: () => ipcRenderer.invoke("app:refresh-provider-catalog"),
   savePreset: (preset: unknown) => ipcRenderer.invoke("app:save-preset", preset),
   createPreset: () => ipcRenderer.invoke("app:create-preset"),

@@ -4,18 +4,21 @@ import { PresetEditor } from "./ui/preset-editor";
 import { StatusBar } from "./ui/status-bar";
 import { getBridge } from "./ui/bridge";
 import { useAppStore } from "./ui/store";
+import { getUiCopy } from "./ui/i18n";
 
 export default function App() {
   const {
     snapshot,
     selectedPresetId,
     draftPreset,
+    language,
     pendingConflictAction,
     status,
     errorMessage,
     load,
     refreshSnapshot,
     refreshProviderCatalog,
+    setLanguage,
     selectPreset,
     updateDraft,
     persistDraft,
@@ -35,6 +38,7 @@ export default function App() {
 
   const activePresetId = snapshot?.activePresetId ?? "";
   const isActiveDraft = Boolean(draftPreset) && draftPreset?.id === activePresetId;
+  const copy = getUiCopy(language);
 
   useEffect(() => {
     void load();
@@ -96,15 +100,15 @@ export default function App() {
         <div className="action-rail" data-testid="action-rail">
           <div className="floating-settings">
             <button className="settings-button" type="button">
-              Settings
+              {copy.settings}
             </button>
           </div>
         </div>
         <section className="panel panel-editor panel-full">
-          <h1>OMO Adapter</h1>
+          <h1>{copy.appTitle}</h1>
           <p>{errorMessage}</p>
         </section>
-        <StatusBar snapshot={snapshot} />
+        <StatusBar language={language} snapshot={snapshot} />
       </main>
     );
   }
@@ -121,10 +125,35 @@ export default function App() {
             }}
             type="button"
           >
-            Settings
+            {copy.settings}
           </button>
           {settingsOpen ? (
             <div className="settings-popover">
+              <div className="settings-section">
+                <p className="settings-section-label">{copy.language}</p>
+                <div className="settings-language-row">
+                  <button
+                    aria-pressed={language === "en"}
+                    className="ghost-button settings-chip"
+                    onClick={async () => {
+                      await setLanguage("en");
+                    }}
+                    type="button"
+                  >
+                    {copy.english}
+                  </button>
+                  <button
+                    aria-pressed={language === "zh-CN"}
+                    className="ghost-button settings-chip"
+                    onClick={async () => {
+                      await setLanguage("zh-CN");
+                    }}
+                    type="button"
+                  >
+                    {copy.simplifiedChinese}
+                  </button>
+                </div>
+              </div>
               <button
                 disabled={isRefreshingCatalog}
                 className="ghost-button settings-action"
@@ -134,7 +163,7 @@ export default function App() {
 
                   try {
                     await refreshProviderCatalog();
-                    setCatalogFeedback("Catalog refreshed");
+                    setCatalogFeedback(copy.catalogRefreshed);
                     setSettingsOpen(false);
                   } finally {
                     setIsRefreshingCatalog(false);
@@ -142,7 +171,7 @@ export default function App() {
                 }}
                 type="button"
               >
-                {isRefreshingCatalog ? "Refreshing..." : "Refresh Model Catalog"}
+                {isRefreshingCatalog ? copy.refreshing : copy.refreshModelCatalog}
               </button>
             </div>
           ) : null}
@@ -155,6 +184,7 @@ export default function App() {
       </div>
       <section className="workspace-grid">
         <PresetList
+          copy={copy}
           presets={snapshot?.presets ?? []}
           activePresetId={activePresetId}
           selectedPresetId={selectedPresetId}
@@ -176,6 +206,7 @@ export default function App() {
           }}
         />
         <PresetEditor
+          copy={copy}
           providerCatalog={
             snapshot?.providerCatalog ?? {
               providerOrder: [],
@@ -201,7 +232,7 @@ export default function App() {
           }}
         />
       </section>
-      <StatusBar snapshot={snapshot} />
+      <StatusBar language={language} snapshot={snapshot} />
     </main>
   );
 }
