@@ -1,5 +1,11 @@
 import { OFFICIAL_AGENT_IDS } from "./agents.ts";
-import type { AgentModelMap, PresetRecord, ProviderCatalog } from "./types.ts";
+import { normalizeReasoningEffortMap } from "./reasoning-effort.ts";
+import type {
+  AgentModelMap,
+  AgentReasoningEffortMap,
+  PresetRecord,
+  ProviderCatalog
+} from "./types.ts";
 
 export function getFirstCatalogModelRef(
   catalog: ProviderCatalog
@@ -31,6 +37,7 @@ export function fillMissingAgentModels(
 
 export function createDefaultPreset(input: {
   currentFileModels: Partial<AgentModelMap>;
+  currentFileReasoningEfforts?: Partial<Record<keyof AgentModelMap, unknown>>;
   fallbackModelRef: string;
 }): PresetRecord {
   return {
@@ -40,6 +47,20 @@ export function createDefaultPreset(input: {
     agentModels: fillMissingAgentModels(
       input.currentFileModels,
       input.fallbackModelRef
+    ),
+    agentReasoningEfforts: normalizeReasoningEffortMap(
+      input.currentFileReasoningEfforts as
+        | Partial<Record<keyof AgentModelMap, unknown>>
+        | undefined
+    )
+  };
+}
+
+export function normalizePresetRecord(input: PresetRecord): PresetRecord {
+  return {
+    ...input,
+    agentReasoningEfforts: normalizeReasoningEffortMap(
+      input.agentReasoningEfforts as AgentReasoningEffortMap | undefined
     )
   };
 }

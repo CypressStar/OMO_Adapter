@@ -5,10 +5,15 @@ import {
   getOmoConfigJsoncPath,
   getOmoConfigPath
 } from "../domain/config-paths.ts";
-import type { OfficialAgentId } from "../domain/types.ts";
+import { normalizeReasoningEffortMap } from "../domain/reasoning-effort.ts";
+import type {
+  AgentReasoningEffortMap,
+  OfficialAgentId
+} from "../domain/types.ts";
 
 export interface OmoAgentEntry {
   model?: string;
+  reasoningEffort?: string;
   description?: string;
   [key: string]: unknown;
 }
@@ -47,19 +52,34 @@ export function normalizeOfficialAgentKey(
 export function extractOfficialAgentModels(
   config: OmoConfig
 ): Partial<OfficialAgentModelMap> {
-  const result: Partial<OfficialAgentModelMap> = {};
+  return extractOfficialAgentSettings(config).models;
+}
+
+export function extractOfficialAgentSettings(config: OmoConfig): {
+  models: Partial<OfficialAgentModelMap>;
+  reasoningEfforts: AgentReasoningEffortMap;
+} {
+  const models: Partial<OfficialAgentModelMap> = {};
+  const rawReasoningEfforts: Partial<Record<OfficialAgentId, unknown>> = {};
 
   for (const [rawKey, value] of Object.entries(config.agents ?? {})) {
     const officialId = normalizeOfficialAgentKey(rawKey);
 
-    if (!officialId || typeof value?.model !== "string") {
+    if (!officialId) {
       continue;
     }
 
-    result[officialId] = value.model;
+    if (typeof value?.model === "string") {
+      models[officialId] = value.model;
+    }
+
+    rawReasoningEfforts[officialId] = value?.reasoningEffort;
   }
 
-  return result;
+  return {
+    models,
+    reasoningEfforts: normalizeReasoningEffortMap(rawReasoningEfforts)
+  };
 }
 
 export function buildDefaultOmoConfig(
@@ -87,15 +107,32 @@ export function buildDefaultOmoConfig(
 
 export function applyPresetToOmoConfig(
   existingConfig: OmoConfig | undefined,
-  presetModels: OfficialAgentModelMap
+  presetModels: OfficialAgentModelMap,
+  presetReasoningEfforts: AgentReasoningEffortMap = {}
 ): OmoConfig {
   const baseline = buildDefaultOmoConfig(presetModels);
+  const officialAgents = new Map<OfficialAgentId, OmoAgentEntry>();
+  const remainingAgents: Record<string, OmoAgentEntry> = {};
+
+  for (const [rawKey, value] of Object.entries(existingConfig?.agents ?? {})) {
+    const officialId = normalizeOfficialAgentKey(rawKey);
+
+    if (!officialId) {
+      remainingAgents[rawKey] = value;
+      continue;
+    }
+
+    const currentEntry = officialAgents.get(officialId) ?? {};
+    officialAgents.set(officialId, {
+      ...value,
+      ...currentEntry
+    });
+  }
+
   const config: OmoConfig = existingConfig
     ? {
         ...existingConfig,
-        agents: {
-          ...(existingConfig.agents ?? {})
-        }
+        agents: remainingAgents
       }
     : baseline;
 
@@ -104,7 +141,7 @@ export function applyPresetToOmoConfig(
   }
 
   for (const agent of OFFICIAL_AGENTS) {
-    const existingAgent = config.agents[agent.id] ?? {};
+    const existingAgent = officialAgents.get(agent.id) ?? {};
     config.agents[agent.id] = {
       ...existingAgent,
       model: presetModels[agent.id],
@@ -113,6 +150,12 @@ export function applyPresetToOmoConfig(
           ? existingAgent.description
           : OFFICIAL_AGENT_MAP[agent.id].description
     };
+
+    if (presetReasoningEfforts[agent.id]) {
+      config.agents[agent.id].reasoningEffort = presetReasoningEfforts[agent.id];
+    } else {
+      delete config.agents[agent.id].reasoningEffort;
+    }
   }
 
   config.hooks = config.hooks ?? baseline.hooks;

@@ -36,6 +36,8 @@ export interface UiCopy {
   description: string;
   provider: string;
   model: string;
+  reasoning: string;
+  reasoningDefault: string;
   selectProvider: string;
   invalidReference: string;
   officialProviders: string;
@@ -99,6 +101,8 @@ const uiCopy: Record<UiLanguage, UiCopy> = {
     description: "Description",
     provider: "Provider",
     model: "Model",
+    reasoning: "Reasoning",
+    reasoningDefault: "medium (default)",
     selectProvider: "Select provider",
     invalidReference: "Invalid reference",
     officialProviders: "Official providers",
@@ -161,6 +165,8 @@ const uiCopy: Record<UiLanguage, UiCopy> = {
     description: "描述",
     provider: "Provider",
     model: "Model",
+    reasoning: "推理强度",
+    reasoningDefault: "medium（默认）",
     selectProvider: "选择 Provider",
     invalidReference: "无效引用",
     officialProviders: "官方 Providers",

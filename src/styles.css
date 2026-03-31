@@ -249,6 +249,11 @@ body {
   gap: 12px;
 }
 
+.selector-row {
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
 .section-label {
   margin: 0 0 6px;
   color: var(--accent);

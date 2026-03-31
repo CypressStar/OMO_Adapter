@@ -38,6 +38,10 @@ describe("normalizePresetStore", () => {
             momus: "openai/gpt-5.4@opencode-high",
             atlas: "openai/gpt-5.4@opencode-high",
             "sisyphus-junior": "openai/gpt-5.4@opencode-high"
+          },
+          agentReasoningEfforts: {
+            hephaestus: "medium",
+            oracle: "high"
           }
         }
       ],
@@ -46,6 +50,9 @@ describe("normalizePresetStore", () => {
     });
 
     expect(result.presets).toHaveLength(1);
+    expect(result.presets[0].agentReasoningEfforts).toEqual({
+      oracle: "high"
+    });
     expect(result.activePresetId).toBe("default");
     expect(result.lastAppliedAt).toBe("2026-03-28T12:34:56.000Z");
   });

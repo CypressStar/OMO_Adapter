@@ -1,12 +1,16 @@
 import { detectDrift } from "../domain/drift.ts";
-import { createDefaultPreset, getFirstCatalogModelRef } from "../domain/presets.ts";
+import {
+  createDefaultPreset,
+  getFirstCatalogModelRef,
+  normalizePresetRecord
+} from "../domain/presets.ts";
 import { buildProviderCatalog } from "../domain/provider-catalog.ts";
 import type { PresetRecord } from "../domain/types.ts";
 import { readCliModels } from "../infrastructure/opencode-cli.ts";
 import { readOpenCodeConfig } from "../infrastructure/opencode-config.ts";
 import {
   applyPresetToOmoConfig,
-  extractOfficialAgentModels,
+  extractOfficialAgentSettings,
   readOmoConfig,
   writeOmoConfig,
   type OmoConfig
@@ -39,13 +43,15 @@ export async function createAppSnapshot(input: {
 
   const fallbackModelRef =
     getFirstCatalogModelRef(providerCatalog) ?? "openai/gpt-5.4@opencode-medium";
-  const currentFileModels = extractOfficialAgentModels(input.currentOmoConfig ?? {});
+  const currentFileSettings = extractOfficialAgentSettings(input.currentOmoConfig ?? {});
+  const currentFileModels = currentFileSettings.models;
   const presets =
     input.storedPresets.length > 0
       ? input.storedPresets
       : [
           createDefaultPreset({
             currentFileModels,
+            currentFileReasoningEfforts: currentFileSettings.reasoningEfforts,
             fallbackModelRef
           })
         ];
@@ -58,7 +64,9 @@ export async function createAppSnapshot(input: {
       }
     : detectDrift({
         presetModels: activePreset.agentModels,
-        fileModels: currentFileModels
+        fileModels: currentFileModels,
+        presetReasoningEfforts: activePreset.agentReasoningEfforts,
+        fileReasoningEfforts: currentFileSettings.reasoningEfforts
       });
 
   return {
@@ -122,14 +130,18 @@ async function buildSnapshotFromRuntime(options?: { forceCatalogRefresh?: boolea
 }
 
 function clonePreset(preset: PresetRecord, overrides: Partial<PresetRecord>): PresetRecord {
-  return {
+  return normalizePresetRecord({
     ...preset,
     ...overrides,
     agentModels: {
       ...preset.agentModels,
       ...overrides.agentModels
-    }
-  };
+    },
+    agentReasoningEfforts:
+      overrides.agentReasoningEfforts !== undefined
+        ? { ...overrides.agentReasoningEfforts }
+        : { ...(preset.agentReasoningEfforts ?? {}) }
+  });
 }
 
 function uniquePresetId() {
@@ -154,19 +166,22 @@ export function resetProviderCatalogCache() {
 
 export async function savePreset(input: PresetRecord) {
   const runtime = await loadFastRuntime();
+  const normalizedInput = normalizePresetRecord(input);
   const nextPresets = [...runtime.presetStore.presets];
-  const existingIndex = nextPresets.findIndex((preset) => preset.id === input.id);
+  const existingIndex = nextPresets.findIndex(
+    (preset) => preset.id === normalizedInput.id
+  );
 
   if (existingIndex === -1) {
-    nextPresets.push(input);
+    nextPresets.push(normalizedInput);
   } else {
-    nextPresets[existingIndex] = input;
+    nextPresets[existingIndex] = normalizedInput;
   }
 
   await writePresetStore({
     presets: nextPresets,
-    activePresetId: runtime.presetStore.activePresetId ?? input.id,
-      lastAppliedAt: runtime.presetStore.lastAppliedAt
+    activePresetId: runtime.presetStore.activePresetId ?? normalizedInput.id,
+    lastAppliedAt: runtime.presetStore.lastAppliedAt
   });
 
   return loadSnapshot();
@@ -271,7 +286,11 @@ export async function setActivePreset(presetId: string) {
   }
 
   await writeOmoConfig(
-    applyPresetToOmoConfig(runtime.omoState.config, preset.agentModels)
+    applyPresetToOmoConfig(
+      runtime.omoState.config,
+      preset.agentModels,
+      preset.agentReasoningEfforts ?? {}
+    )
   );
   const lastAppliedAt = new Date().toISOString();
 
@@ -303,7 +322,11 @@ export async function applyActivePreset() {
     snapshot.presets[0];
 
   await writeOmoConfig(
-    applyPresetToOmoConfig(runtime.omoState.config, activePreset.agentModels)
+    applyPresetToOmoConfig(
+      runtime.omoState.config,
+      activePreset.agentModels,
+      activePreset.agentReasoningEfforts ?? {}
+    )
   );
 
   const lastAppliedAt = new Date().toISOString();
@@ -337,17 +360,20 @@ export async function importFileToActivePreset() {
   const fallbackModelRef =
     getFirstCatalogModelRef(snapshot.providerCatalog) ??
     "openai/gpt-5.4@opencode-medium";
-  const importedModels = createDefaultPreset({
-    currentFileModels: extractOfficialAgentModels(runtime.omoState.config ?? {}),
+  const currentFileSettings = extractOfficialAgentSettings(runtime.omoState.config ?? {});
+  const importedPreset = createDefaultPreset({
+    currentFileModels: currentFileSettings.models,
+    currentFileReasoningEfforts: currentFileSettings.reasoningEfforts,
     fallbackModelRef
-  }).agentModels;
+  });
 
   await writePresetStore({
     presets: snapshot.presets.map((preset: PresetRecord) =>
       preset.id === activePreset.id
         ? {
             ...preset,
-            agentModels: importedModels
+            agentModels: importedPreset.agentModels,
+            agentReasoningEfforts: importedPreset.agentReasoningEfforts
           }
         : preset
     ),

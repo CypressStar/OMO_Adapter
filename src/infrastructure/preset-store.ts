@@ -2,13 +2,15 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { z } from "zod";
+import { normalizePresetRecord } from "../domain/presets.ts";
 import type { PresetRecord } from "../domain/types.ts";
 
 const presetRecordSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   description: z.string(),
-  agentModels: z.record(z.string(), z.string())
+  agentModels: z.record(z.string(), z.string()),
+  agentReasoningEfforts: z.record(z.string(), z.string()).optional()
 });
 
 const presetStoreSchema = z.object({
@@ -38,7 +40,9 @@ export function normalizePresetStore(input: unknown): PresetStoreData {
 
   const parsed = presetStoreSchema.parse(input);
   return {
-    presets: parsed.presets as PresetRecord[],
+    presets: (parsed.presets as PresetRecord[]).map((preset) =>
+      normalizePresetRecord(preset)
+    ),
     activePresetId: parsed.activePresetId,
     lastAppliedAt: parsed.lastAppliedAt
   };
@@ -67,6 +71,23 @@ export async function readPresetStore() {
 
 export async function writePresetStore(store: PresetStoreData) {
   const targetPath = getPresetStorePath();
+  const serializedStore = {
+    ...store,
+    presets: store.presets.map((preset) => {
+      const normalizedPreset = normalizePresetRecord(preset);
+
+      if (
+        normalizedPreset.agentReasoningEfforts &&
+        Object.keys(normalizedPreset.agentReasoningEfforts).length === 0
+      ) {
+        const { agentReasoningEfforts: _ignored, ...rest } = normalizedPreset;
+
+        return rest;
+      }
+
+      return normalizedPreset;
+    })
+  };
   await fs.mkdir(path.dirname(targetPath), { recursive: true });
-  await fs.writeFile(targetPath, JSON.stringify(store, null, 2), "utf8");
+  await fs.writeFile(targetPath, JSON.stringify(serializedStore, null, 2), "utf8");
 }

@@ -13,6 +13,14 @@ export type OfficialAgentId =
 
 export type ProviderSource = "official" | "custom";
 
+export type ReasoningEffort =
+  | "low"
+  | "medium"
+  | "high"
+  | "xhigh";
+
+export type StoredReasoningEffort = Exclude<ReasoningEffort, "medium">;
+
 export interface OfficialAgentDefinition {
   id: OfficialAgentId;
   label: string;
@@ -32,9 +40,14 @@ export interface ProviderCatalog {
 
 export type AgentModelMap = Record<OfficialAgentId, string>;
 
+export type AgentReasoningEffortMap = Partial<
+  Record<OfficialAgentId, StoredReasoningEffort>
+>;
+
 export interface PresetRecord {
   id: string;
   name: string;
   description: string;
   agentModels: AgentModelMap;
+  agentReasoningEfforts?: AgentReasoningEffortMap;
 }

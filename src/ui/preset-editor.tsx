@@ -1,6 +1,11 @@
 import type { DriftState } from "../integration/contracts";
 import { OFFICIAL_AGENTS } from "../domain/agents";
-import type { PresetRecord, ProviderCatalog } from "../domain/types";
+import { REASONING_EFFORT_OPTIONS } from "../domain/reasoning-effort";
+import type {
+  PresetRecord,
+  ProviderCatalog,
+  StoredReasoningEffort
+} from "../domain/types";
 import { resolveProviderModelRefStatus } from "../domain/provider-catalog.ts";
 import { getUiCopy, type UiCopy } from "./i18n";
 
@@ -113,6 +118,8 @@ export function PresetEditor(props: PresetEditorProps) {
         <div className="agent-grid">
           {OFFICIAL_AGENTS.map((agent) => {
             const currentModelRef = draftPreset.agentModels[agent.id];
+            const currentReasoningEffort =
+              draftPreset.agentReasoningEfforts?.[agent.id] ?? "medium";
             const modelRefStatus = resolveProviderModelRefStatus(
               props.providerCatalog,
               currentModelRef
@@ -150,6 +157,7 @@ export function PresetEditor(props: PresetEditorProps) {
                   <label className="field compact-field">
                     <span>{copy.provider}</span>
                     <select
+                      aria-label={`${agent.label} ${copy.provider}`}
                       value={providerId}
                       onChange={(event) => {
                         const nextProviderId = event.target.value;
@@ -208,6 +216,7 @@ export function PresetEditor(props: PresetEditorProps) {
                   <label className="field compact-field">
                     <span>{copy.model}</span>
                     <select
+                      aria-label={`${agent.label} ${copy.model}`}
                       value={modelId}
                       onChange={(event) =>
                         props.onChange({
@@ -239,6 +248,37 @@ export function PresetEditor(props: PresetEditorProps) {
                       {modelOptions.map((item) => (
                         <option key={item} value={item}>
                           {item}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="field compact-field">
+                    <span>{copy.reasoning}</span>
+                    <select
+                      aria-label={`${agent.label} ${copy.reasoning}`}
+                      value={currentReasoningEffort}
+                      onChange={(event) => {
+                        const nextReasoningEfforts = {
+                          ...(draftPreset.agentReasoningEfforts ?? {})
+                        };
+                        const nextValue = event.target.value;
+
+                        if (nextValue === "medium") {
+                          delete nextReasoningEfforts[agent.id];
+                        } else {
+                          nextReasoningEfforts[agent.id] =
+                            nextValue as StoredReasoningEffort;
+                        }
+
+                        props.onChange({
+                          ...draftPreset,
+                          agentReasoningEfforts: nextReasoningEfforts
+                        });
+                      }}
+                    >
+                      {REASONING_EFFORT_OPTIONS.map((item) => (
+                        <option key={item} value={item}>
+                          {item === "medium" ? copy.reasoningDefault : item}
                         </option>
                       ))}
                     </select>

@@ -3,7 +3,7 @@ import {
   createDefaultPreset,
   fillMissingAgentModels,
   getFirstCatalogModelRef
-} from "./presets";
+} from "./presets.ts";
 
 describe("getFirstCatalogModelRef", () => {
   test("returns the first provider/model pair using provider order", () => {
@@ -42,11 +42,29 @@ describe("createDefaultPreset", () => {
       currentFileModels: {
         sisyphus: "openai/gpt-5.4@opencode-high"
       },
+      currentFileReasoningEfforts: {
+        hephaestus: "high"
+      },
       fallbackModelRef: "openai/gpt-5.4@opencode-medium"
     });
 
     expect(preset.id).toBe("default");
     expect(preset.agentModels.sisyphus).toBe("openai/gpt-5.4@opencode-high");
     expect(preset.agentModels.oracle).toBe("openai/gpt-5.4@opencode-medium");
+    expect(preset.agentReasoningEfforts?.hephaestus).toBe("high");
+  });
+
+  test("omits effective medium reasoning effort from the stored preset", () => {
+    const preset = createDefaultPreset({
+      currentFileModels: {
+        sisyphus: "openai/gpt-5.4@opencode-high"
+      },
+      currentFileReasoningEfforts: {
+        sisyphus: "medium"
+      },
+      fallbackModelRef: "openai/gpt-5.4@opencode-medium"
+    });
+
+    expect(preset.agentReasoningEfforts).toEqual({});
   });
 });

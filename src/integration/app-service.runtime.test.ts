@@ -126,6 +126,31 @@ describe("app-service runtime behavior", () => {
     expect(snapshot.activePresetId).toBe("default");
   });
 
+  test("imports non-default reasoning effort into the generated default preset", async () => {
+    mocks.readPresetStore.mockResolvedValueOnce({
+      presets: [],
+      activePresetId: undefined,
+      lastAppliedAt: undefined
+    });
+    mocks.readOmoConfig.mockResolvedValueOnce({
+      exists: true,
+      config: {
+        agents: {
+          hephaestus: {
+            model: "openai/gpt-5.4",
+            reasoningEffort: "high"
+          }
+        }
+      }
+    });
+
+    const snapshot = await loadSnapshot();
+
+    expect(snapshot.presets[0].agentReasoningEfforts).toEqual({
+      hephaestus: "high"
+    });
+  });
+
   test("refreshProviderCatalog forces a fresh CLI reload", async () => {
     mocks.readCliModels
       .mockResolvedValueOnce(["openai/gpt-5.4@opencode-high"])

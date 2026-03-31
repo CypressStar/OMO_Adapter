@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   applyPresetToOmoConfig,
   buildDefaultOmoConfig,
+  extractOfficialAgentSettings,
   extractOfficialAgentModels,
   readOmoConfig,
   writeOmoConfig
@@ -101,6 +102,117 @@ describe("applyPresetToOmoConfig", () => {
       "openai/gpt-5.4@opencode-medium"
     );
     expect(result.hooks.pre.enabled).toBe(true);
+  });
+
+  test("consolidates legacy official agent aliases into the canonical key", () => {
+    const result = applyPresetToOmoConfig(
+      {
+        agents: {
+          Hephaestus: {
+            model: "anthropic/claude-sonnet-4-5",
+            description: "深度工作者:自主目标执行、深入探索后编码"
+          },
+          hephaestus: {
+            model: "openai/gpt-5.4@opencode-medium",
+            description: "Deep execution specialist for autonomous implementation."
+          }
+        }
+      },
+      {
+        sisyphus: "openai/gpt-5.4@opencode-high",
+        hephaestus: "xai/grok-4-1-fast",
+        oracle: "openai/gpt-5.4@opencode-xhigh",
+        librarian: "openai/gpt-5.4@opencode-medium",
+        explore: "openai/gpt-5.4@opencode-medium",
+        "multimodal-looker": "openai/gpt-5.4@opencode-medium",
+        prometheus: "openai/gpt-5.4@opencode-xhigh",
+        metis: "openai/gpt-5.4@opencode-medium",
+        momus: "openai/gpt-5.4@opencode-medium",
+        atlas: "openai/gpt-5.4@opencode-high",
+        "sisyphus-junior": "openai/gpt-5.4@opencode-medium"
+      }
+    );
+
+    expect(result.agents.hephaestus.model).toBe("xai/grok-4-1-fast");
+    expect(result.agents.hephaestus.description).toBe(
+      "深度工作者:自主目标执行、深入探索后编码"
+    );
+    expect(result.agents).not.toHaveProperty("Hephaestus");
+  });
+
+  test("writes non-default reasoning effort and removes stale medium values", () => {
+    const result = applyPresetToOmoConfig(
+      {
+        agents: {
+          hephaestus: {
+            model: "openai/gpt-5.4",
+            reasoningEffort: "high"
+          },
+          oracle: {
+            model: "openai/gpt-5.4",
+            reasoningEffort: "medium"
+          }
+        }
+      },
+      {
+        sisyphus: "openai/gpt-5.4@opencode-high",
+        hephaestus: "openai/gpt-5.4",
+        oracle: "openai/gpt-5.4",
+        librarian: "openai/gpt-5.4@opencode-medium",
+        explore: "openai/gpt-5.4@opencode-medium",
+        "multimodal-looker": "openai/gpt-5.4@opencode-medium",
+        prometheus: "openai/gpt-5.4@opencode-xhigh",
+        metis: "openai/gpt-5.4@opencode-medium",
+        momus: "openai/gpt-5.4@opencode-medium",
+        atlas: "openai/gpt-5.4@opencode-high",
+        "sisyphus-junior": "openai/gpt-5.4@opencode-medium"
+      },
+      {
+        hephaestus: "low"
+      }
+    );
+
+    expect(result.agents.hephaestus.reasoningEffort).toBe("low");
+    expect(result.agents.oracle).not.toHaveProperty("reasoningEffort");
+  });
+});
+
+describe("extractOfficialAgentSettings", () => {
+  test("normalizes medium reasoning effort away and keeps non-default values", () => {
+    const settings = extractOfficialAgentSettings({
+      agents: {
+        Hephaestus: {
+          model: "openai/gpt-5.4",
+          reasoningEffort: "medium"
+        },
+        oracle: {
+          model: "openai/gpt-5.4",
+          reasoningEffort: "high"
+        }
+      }
+    });
+
+    expect(settings.models.hephaestus).toBe("openai/gpt-5.4");
+    expect(settings.reasoningEfforts.hephaestus).toBeUndefined();
+    expect(settings.reasoningEfforts.oracle).toBe("high");
+  });
+
+  test("treats unsupported reasoning effort values as default medium", () => {
+    const settings = extractOfficialAgentSettings({
+      agents: {
+        hephaestus: {
+          model: "openai/gpt-5.4",
+          reasoningEffort: "minimal"
+        },
+        oracle: {
+          model: "openai/gpt-5.4",
+          reasoningEffort: "none"
+        }
+      }
+    });
+
+    expect(settings.reasoningEfforts.hephaestus).toBeUndefined();
+    expect(settings.reasoningEfforts.oracle).toBeUndefined();
   });
 });
 
