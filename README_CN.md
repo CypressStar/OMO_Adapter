@@ -11,6 +11,7 @@
 - 从 OpenCode 本地配置读取可用的 provider 和 model
 - 区分官方 provider 模型与 `opencode.json` 中的自定义 provider
 - 管理多套可复用的 Agent 预设
+- 支持为每个官方 Agent 单独配置 `reasoningEffort`
 - 将选中的预设写入本地 OMO 配置文件
 - 在用户手动改过文件后检测 drift 并给出提示
 - 尽量保留无关配置内容，而不是粗暴重写整个文件
@@ -20,11 +21,24 @@
 `OMO_Adapter` 的本地使用流程很简单：
 
 1. 读取当前可用的 provider/model 目录
-2. 为官方 Agent 集合编辑、复制或新建预设
+2. 为官方 Agent 集合编辑、复制或新建预设，并设置每个 Agent 的推理强度
 3. 激活预设并写入当前 OMO 配置
 4. 如果手动修改导致 drift，再选择重新应用或导入文件内容
 
 工具不会替你自动重启 OpenCode。若新的 Agent 配置需要重启才能生效，这一步仍由用户自己决定何时执行。
+
+## 每个 Agent 的推理强度
+
+`OMO_Adapter` 现在支持为每个官方 Agent 单独保存 `reasoningEffort`。
+
+支持的档位：
+
+- `low`
+- `medium`
+- `high`
+- `xhigh`
+
+其中 `medium` 被视为默认值。在 UI 中选择 `medium` 时，预设会按默认推理强度工作，并且写入 OMO 配置文件时不会额外写出 `reasoningEffort` 字段。只有非默认档位才会和对应 `model` 一起写入目标配置。
 
 ## 官方 Agent 范围
 
@@ -65,6 +79,7 @@ OpenCode provider 来源文件：
 
 - 只管理官方 11 个 Agent
 - 支持同一套预设中混合使用不同 provider
+- 支持同一套预设中为不同 Agent 混合设置不同 `reasoningEffort`
 - 检测到 drift 时会提示，不会静默覆盖
 - 目标文件不存在时会按需创建
 - `hooks`、`mcp` 以及未被管理的自定义内容会尽量保留

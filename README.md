@@ -11,6 +11,7 @@ It is built for one job: stop editing agent model mappings by hand every time yo
 - Reads available provider and model choices from OpenCode's local configuration
 - Distinguishes official provider models and custom providers from `opencode.json`
 - Manages multiple reusable agent presets
+- Lets each official agent carry its own `reasoningEffort` setting
 - Applies the selected preset to the local OMO config files
 - Detects drift when the active file was changed outside the tool
 - Preserves unrelated config content instead of rewriting the whole file blindly
@@ -20,11 +21,24 @@ It is built for one job: stop editing agent model mappings by hand every time yo
 `OMO_Adapter` is designed around a simple local workflow:
 
 1. Load the available provider and model catalog
-2. Edit or duplicate a preset for the official agent set
+2. Edit or duplicate a preset for the official agent set, including per-agent reasoning levels
 3. Activate a preset to write it into the active OMO config
 4. Re-apply or import when manual edits cause drift
 
 The tool does not restart OpenCode for you. If a new agent mapping requires OpenCode to restart, that remains a manual user action.
+
+## Per-Agent Reasoning Effort
+
+`OMO_Adapter` can store a separate `reasoningEffort` for each official agent.
+
+Supported levels:
+
+- `low`
+- `medium`
+- `high`
+- `xhigh`
+
+`medium` is treated as the effective default. In the UI, selecting `medium` keeps the preset behavior at the default level and omits the `reasoningEffort` field from the written OMO config. Non-default values are written per agent alongside the selected `model`.
 
 ## Official Agent Coverage
 
@@ -65,6 +79,7 @@ OMO target files written by the tool:
 
 - Only the official 11 agents are managed by the tool
 - Mixed provider assignment is supported inside a single preset
+- Mixed `reasoningEffort` levels are supported inside a single preset
 - Drift is surfaced instead of silently overwritten
 - Missing target files are created automatically when needed
 - Unrelated sections such as `hooks`, `mcp`, and non-managed custom entries are preserved
