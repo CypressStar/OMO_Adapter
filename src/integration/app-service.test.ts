@@ -10,6 +10,7 @@ describe("createAppSnapshot", () => {
       ],
       configuredProviderIds: ["openai", "bosson"],
       customProviderIds: ["bosson"],
+      providerNamesByConfigId: {},
       currentOmoConfig: {
         agents: {
           sisyphus: { model: "openai/gpt-5.4@opencode-high" }
@@ -34,6 +35,7 @@ describe("createAppSnapshot", () => {
       cliModels: ["openai/gpt-5.4@opencode-high"],
       configuredProviderIds: ["openai"],
       customProviderIds: [],
+      providerNamesByConfigId: {},
       currentOmoConfig: {
         agents: {
           sisyphus: { model: "openai/gpt-5.4@opencode-high" }

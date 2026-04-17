@@ -2,7 +2,7 @@
 
 [English](./README.md)
 
-`OMO_Adapter` 是一个本地桌面工具，用于管理和切换 OpenCode 中 `oh-my-openagent` / `oh-my-opencode` 的 11 个官方 Agent 模型预设。
+`OMO_Adapter` 是一个本地桌面工具，用于管理和切换 OpenCode 中 `oh-my-openagent` 的 11 个官方 Agent 模型预设。
 
 它只专注一件事：不再每次都手动改 Agent 的模型映射文件，而是用预设快速切换不同 provider 和 model 组合。
 
@@ -69,11 +69,10 @@ OpenCode provider 来源文件：
 工具写入的 OMO 目标文件：
 
 ```text
-~/.config/opencode/oh-my-opencode.json
-~/.config/opencode/oh-my-opencode.jsonc
+~/.config/opencode/oh-my-openagent.json
 ```
 
-`OMO_Adapter` 会从 `opencode.json` 读取 provider 信息，并把选中的官方 Agent 模型映射同时写入这两个 OMO 目标文件。
+`OMO_Adapter` 会从 `opencode.json` 读取 provider 信息，并把选中的官方 Agent 模型映射写入当前使用的 OMO 目标文件。
 
 ## 安全边界
 

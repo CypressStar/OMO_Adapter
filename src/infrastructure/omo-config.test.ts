@@ -230,17 +230,17 @@ describe("writeOmoConfig", () => {
     });
 
     expect(writeFileSpy).toHaveBeenCalledWith(
-      expect.stringMatching(/oh-my-opencode\.json\.tmp$/),
+      expect.stringMatching(/oh-my-openagent\.json\.tmp$/),
       expect.any(String),
       "utf8"
     );
     expect(renameSpy).toHaveBeenCalledWith(
-      expect.stringMatching(/oh-my-opencode\.json\.tmp$/),
-      expect.stringMatching(/oh-my-opencode\.json$/)
+      expect.stringMatching(/oh-my-openagent\.json\.tmp$/),
+      expect.stringMatching(/oh-my-openagent\.json$/)
     );
   });
 
-  test("writes a mirrored oh-my-opencode.jsonc file alongside oh-my-opencode.json", async () => {
+  test("writes only oh-my-openagent.json and does not create a jsonc mirror", async () => {
     await writeOmoConfig({
       agents: {
         sisyphus: {
@@ -249,29 +249,28 @@ describe("writeOmoConfig", () => {
       }
     });
 
-    const jsonPath = path.join(tempHomePath, ".config", "opencode", "oh-my-opencode.json");
-    const jsoncPath = path.join(
+    const jsonPath = path.join(
       tempHomePath,
       ".config",
       "opencode",
-      "oh-my-opencode.jsonc"
+      "oh-my-openagent.json"
     );
+    const jsoncPath = path.join(tempHomePath, ".config", "opencode", "oh-my-openagent.jsonc");
 
-    await expect(fs.readFile(jsonPath, "utf8")).resolves.toBe(
-      await fs.readFile(jsoncPath, "utf8")
-    );
+    await expect(fs.readFile(jsonPath, "utf8")).resolves.toContain("sisyphus");
+    await expect(fs.access(jsoncPath)).rejects.toThrow();
   });
 });
 
 describe("readOmoConfig", () => {
-  test("reports which file is invalid when oh-my-opencode.json cannot be parsed", async () => {
+  test("reports which file is invalid when oh-my-openagent.json cannot be parsed", async () => {
     await fs.mkdir(path.join(tempHomePath, ".config", "opencode"), { recursive: true });
     await fs.writeFile(
-      path.join(tempHomePath, ".config", "opencode", "oh-my-opencode.json"),
+      path.join(tempHomePath, ".config", "opencode", "oh-my-openagent.json"),
       "{ invalid json",
       "utf8"
     );
 
-    await expect(readOmoConfig()).rejects.toThrow(/oh-my-opencode\.json/i);
+    await expect(readOmoConfig()).rejects.toThrow(/oh-my-openagent\.json/i);
   });
 });

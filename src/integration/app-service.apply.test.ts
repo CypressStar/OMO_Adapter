@@ -73,7 +73,8 @@ describe("applyActivePreset", () => {
     mocks.readCliModels.mockResolvedValue(["openai/gpt-5.4@opencode-high"]);
     mocks.readOpenCodeConfig.mockResolvedValue({
       configuredProviderIds: ["openai"],
-      customProviderIds: []
+      customProviderIds: [],
+      providerNamesByConfigId: {}
     });
     mocks.readOmoConfig.mockResolvedValue({
       exists: true,

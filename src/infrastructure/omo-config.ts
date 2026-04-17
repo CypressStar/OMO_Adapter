@@ -2,7 +2,6 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { OFFICIAL_AGENTS, OFFICIAL_AGENT_MAP } from "../domain/agents.ts";
 import {
-  getOmoConfigJsoncPath,
   getOmoConfigPath
 } from "../domain/config-paths.ts";
 import { normalizeReasoningEffortMap } from "../domain/reasoning-effort.ts";
@@ -224,8 +223,5 @@ export async function writeOmoConfig(config: OmoConfig) {
   // Validate the serialized payload before touching the target file.
   JSON.parse(serializedConfig);
 
-  await Promise.all([
-    writeConfigFileAtomically(getOmoConfigPath(), serializedConfig),
-    writeConfigFileAtomically(getOmoConfigJsoncPath(), serializedConfig)
-  ]);
+  await writeConfigFileAtomically(getOmoConfigPath(), serializedConfig);
 }

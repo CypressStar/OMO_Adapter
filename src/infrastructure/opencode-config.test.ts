@@ -28,6 +28,7 @@ describe("parseOpenCodeConfig", () => {
     const result = parseOpenCodeConfig(`{
       "provider": {
         "bosson": {
+          "name": "claude-proxy",
           "npm": "@ai-sdk/openai-compatible",
           "models": {
             "claude-opus-4-6": {}
@@ -41,8 +42,27 @@ describe("parseOpenCodeConfig", () => {
       }
     }`);
 
-    expect(result.customProviderIds).toEqual(["bosson"]);
-    expect(result.configuredProviderIds).toEqual(["bosson", "openai"]);
+    expect(result.customProviderIds).toEqual(["claude-proxy"]);
+    expect(result.configuredProviderIds).toEqual(["claude-proxy", "openai"]);
+    expect(result.providerNamesByConfigId).toEqual({
+      bosson: "claude-proxy",
+      openai: "openai"
+    });
+  });
+
+  test("falls back to the config key when a provider name is missing", () => {
+    const result = parseOpenCodeConfig(`{
+      "provider": {
+        "cch": {
+          "npm": "@ai-sdk/openai"
+        }
+      }
+    }`);
+
+    expect(result.customProviderIds).toEqual(["cch"]);
+    expect(result.providerNamesByConfigId).toEqual({
+      cch: "cch"
+    });
   });
 
   test("reports which file is invalid when opencode.json cannot be parsed", async () => {

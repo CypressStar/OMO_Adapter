@@ -85,12 +85,14 @@ export function resolveProviderModelRefStatus(
 export function buildProviderCatalog(input: {
   cliModels: string[];
   customProviderIds: string[];
+  providerNamesByConfigId: Record<string, string>;
 }): ProviderCatalog {
   const customProviderSet = new Set(input.customProviderIds);
   const providers: ProviderCatalog["providers"] = {};
 
   for (const modelRef of input.cliModels) {
-    const { providerId, modelId } = parseProviderModelRef(modelRef);
+    const { providerId: rawProviderId, modelId } = parseProviderModelRef(modelRef);
+    const providerId = input.providerNamesByConfigId[rawProviderId] ?? rawProviderId;
     const source: ProviderSource = customProviderSet.has(providerId)
       ? "custom"
       : "official";

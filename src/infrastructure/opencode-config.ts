@@ -5,7 +5,8 @@ import { z } from "zod";
 
 const providerConfigSchema = z
   .object({
-    npm: z.string().optional()
+    npm: z.string().optional(),
+    name: z.string().optional()
   })
   .passthrough();
 
@@ -18,15 +19,24 @@ const openCodeConfigSchema = z
 export function parseOpenCodeConfig(content: string) {
   const parsed = openCodeConfigSchema.parse(JSON.parse(content));
   const providerEntries = Object.entries(parsed.provider ?? {});
+  const providerNamesByConfigId = Object.fromEntries(
+    providerEntries.map(([providerId, value]) => [
+      providerId,
+      typeof value.name === "string" && value.name.trim().length > 0
+        ? value.name.trim()
+        : providerId
+    ])
+  );
 
   return {
     configuredProviderIds: providerEntries
-      .map(([providerId]) => providerId)
+      .map(([providerId]) => providerNamesByConfigId[providerId])
       .sort((left, right) => left.localeCompare(right)),
     customProviderIds: providerEntries
       .filter(([, value]) => typeof value.npm === "string" && value.npm.length > 0)
-      .map(([providerId]) => providerId)
-      .sort((left, right) => left.localeCompare(right))
+      .map(([providerId]) => providerNamesByConfigId[providerId])
+      .sort((left, right) => left.localeCompare(right)),
+    providerNamesByConfigId
   };
 }
 
@@ -40,7 +50,8 @@ export async function readOpenCodeConfig() {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       return {
         configuredProviderIds: [],
-        customProviderIds: []
+        customProviderIds: [],
+        providerNamesByConfigId: {}
       };
     }
 

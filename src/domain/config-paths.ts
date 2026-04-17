@@ -10,9 +10,5 @@ export function getOpenCodeConfigPath() {
 }
 
 export function getOmoConfigPath() {
-  return resolveHomePath(".config", "opencode", "oh-my-opencode.json");
-}
-
-export function getOmoConfigJsoncPath() {
-  return resolveHomePath(".config", "opencode", "oh-my-opencode.jsonc");
+  return resolveHomePath(".config", "opencode", "oh-my-openagent.json");
 }

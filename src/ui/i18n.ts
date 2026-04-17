@@ -72,7 +72,7 @@ const uiCopy: Record<UiLanguage, UiCopy> = {
     simplifiedChinese: "简体中文",
     agentPresets: "Agent Presets",
     sidebarNote:
-      "Manage official OMO agent model layouts and switch what gets written to `oh-my-opencode.json`.",
+      "Manage official OMO agent model layouts and switch what gets written to `oh-my-openagent.json`.",
     newPreset: "New",
     active: "Active",
     noDescriptionYet: "No description yet.",
@@ -136,7 +136,7 @@ const uiCopy: Record<UiLanguage, UiCopy> = {
     simplifiedChinese: "简体中文",
     agentPresets: "Agent 预设",
     sidebarNote:
-      "管理官方 OMO Agent 的模型预设，并切换写入 `oh-my-opencode.json` 的配置映射。",
+      "管理官方 OMO Agent 的模型预设，并切换写入 `oh-my-openagent.json` 的配置映射。",
     newPreset: "新建",
     active: "已启用",
     noDescriptionYet: "暂无描述。",

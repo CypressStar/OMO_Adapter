@@ -23,13 +23,16 @@ describe("buildProviderCatalog", () => {
         "bosson/claude-opus-4-6",
         "bosson/claude-sonnet-4-5-20250929"
       ],
-      customProviderIds: ["bosson"]
+      customProviderIds: ["claude-proxy"],
+      providerNamesByConfigId: {
+        bosson: "claude-proxy"
+      }
     });
 
     expect(catalog.providers.anthropic.source).toBe("official");
     expect(catalog.providers.openai.source).toBe("official");
-    expect(catalog.providers.bosson.source).toBe("custom");
-    expect(catalog.providers.bosson.models).toEqual([
+    expect(catalog.providers["claude-proxy"].source).toBe("custom");
+    expect(catalog.providers["claude-proxy"].models).toEqual([
       "claude-opus-4-6",
       "claude-sonnet-4-5-20250929"
     ]);
@@ -42,7 +45,8 @@ describe("buildProviderCatalog", () => {
         "openai/gpt-5.4@opencode-medium",
         "anthropic/claude-opus-4-6"
       ],
-      customProviderIds: []
+      customProviderIds: [],
+      providerNamesByConfigId: {}
     });
 
     expect(catalog.providerOrder).toEqual(["anthropic", "openai"]);
@@ -56,7 +60,8 @@ describe("resolveProviderModelRefStatus", () => {
   test("flags unsupported providers and unsupported models without dropping the raw value", () => {
     const catalog = buildProviderCatalog({
       cliModels: ["openai/gpt-5.4@opencode-high"],
-      customProviderIds: []
+      customProviderIds: [],
+      providerNamesByConfigId: {}
     });
 
     expect(
@@ -75,6 +80,25 @@ describe("resolveProviderModelRefStatus", () => {
       rawValue: "openai/gpt-legacy",
       providerId: "openai",
       modelId: "gpt-legacy"
+    });
+  });
+
+  test("keeps legacy refs untouched when only the new provider name is catalogued", () => {
+    const catalog = buildProviderCatalog({
+      cliModels: ["cch/gpt-5.4"],
+      customProviderIds: ["oai"],
+      providerNamesByConfigId: {
+        cch: "oai"
+      }
+    });
+
+    expect(
+      resolveProviderModelRefStatus(catalog, "cch/gpt-5.4")
+    ).toEqual({
+      kind: "unsupported-provider",
+      rawValue: "cch/gpt-5.4",
+      providerId: "cch",
+      modelId: "gpt-5.4"
     });
   });
 });

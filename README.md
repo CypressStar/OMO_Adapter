@@ -2,7 +2,7 @@
 
 [简体中文](./README_CN.md)
 
-`OMO_Adapter` is a local desktop utility for managing and switching model presets for the 11 official agents used by `oh-my-openagent` / `oh-my-opencode` in OpenCode.
+`OMO_Adapter` is a local desktop utility for managing and switching model presets for the 11 official agents used by `oh-my-openagent` in OpenCode.
 
 It is built for one job: stop editing agent model mappings by hand every time you want to switch providers or rebalance models across agents.
 
@@ -69,11 +69,10 @@ OpenCode provider source:
 OMO target files written by the tool:
 
 ```text
-~/.config/opencode/oh-my-opencode.json
-~/.config/opencode/oh-my-opencode.jsonc
+~/.config/opencode/oh-my-openagent.json
 ```
 
-`OMO_Adapter` reads provider information from `opencode.json`, then writes the selected official agent mapping to both OMO target files.
+`OMO_Adapter` reads provider information from `opencode.json`, then writes the selected official agent mapping to the active OMO target file.
 
 ## Safety Rules
 
