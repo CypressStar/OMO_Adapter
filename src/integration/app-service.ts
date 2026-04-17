@@ -22,7 +22,7 @@ interface CachedCatalogState {
   cliModels: string[];
   configuredProviderIds: string[];
   customProviderIds: string[];
-  providerNamesByConfigId: Record<string, string>;
+  providerDisplayNamesById: Record<string, string>;
 }
 
 let cachedCatalogState: CachedCatalogState | null = null;
@@ -31,7 +31,7 @@ export async function createAppSnapshot(input: {
   cliModels: string[];
   configuredProviderIds: string[];
   customProviderIds: string[];
-  providerNamesByConfigId: Record<string, string>;
+  providerDisplayNamesById: Record<string, string>;
   currentOmoConfig?: OmoConfig;
   storedPresets: PresetRecord[];
   storedActivePresetId?: string;
@@ -41,7 +41,7 @@ export async function createAppSnapshot(input: {
   const providerCatalog = buildProviderCatalog({
     cliModels: input.cliModels,
     customProviderIds: input.customProviderIds,
-    providerNamesByConfigId: input.providerNamesByConfigId
+    providerDisplayNamesById: input.providerDisplayNamesById
   });
 
   const fallbackModelRef =
@@ -97,7 +97,7 @@ async function loadCatalogState(forceRefresh = false) {
       cliModels,
       configuredProviderIds: openCodeConfig.configuredProviderIds,
       customProviderIds: openCodeConfig.customProviderIds,
-      providerNamesByConfigId: openCodeConfig.providerNamesByConfigId
+      providerDisplayNamesById: openCodeConfig.providerDisplayNamesById
     };
   }
 
@@ -126,7 +126,7 @@ async function buildSnapshotFromRuntime(options?: { forceCatalogRefresh?: boolea
     cliModels: catalogState.cliModels,
     configuredProviderIds: catalogState.configuredProviderIds,
     customProviderIds: catalogState.customProviderIds,
-    providerNamesByConfigId: catalogState.providerNamesByConfigId,
+    providerDisplayNamesById: catalogState.providerDisplayNamesById,
     currentOmoConfig: runtime.omoState.config,
     storedPresets: runtime.presetStore.presets,
     storedActivePresetId: runtime.presetStore.activePresetId,
@@ -201,7 +201,7 @@ export async function createPreset() {
     cliModels: catalogState.cliModels,
     configuredProviderIds: catalogState.configuredProviderIds,
     customProviderIds: catalogState.customProviderIds,
-    providerNamesByConfigId: catalogState.providerNamesByConfigId,
+    providerDisplayNamesById: catalogState.providerDisplayNamesById,
     currentOmoConfig: runtime.omoState.config,
     storedPresets: runtime.presetStore.presets,
     storedActivePresetId: runtime.presetStore.activePresetId,
@@ -234,7 +234,7 @@ export async function duplicatePreset(presetId: string) {
     cliModels: catalogState.cliModels,
     configuredProviderIds: catalogState.configuredProviderIds,
     customProviderIds: catalogState.customProviderIds,
-    providerNamesByConfigId: catalogState.providerNamesByConfigId,
+    providerDisplayNamesById: catalogState.providerDisplayNamesById,
     currentOmoConfig: runtime.omoState.config,
     storedPresets: runtime.presetStore.presets,
     storedActivePresetId: runtime.presetStore.activePresetId,
@@ -319,7 +319,7 @@ export async function applyActivePreset() {
     cliModels: catalogState.cliModels,
     configuredProviderIds: catalogState.configuredProviderIds,
     customProviderIds: catalogState.customProviderIds,
-    providerNamesByConfigId: catalogState.providerNamesByConfigId,
+    providerDisplayNamesById: catalogState.providerDisplayNamesById,
     currentOmoConfig: runtime.omoState.config,
     storedPresets: runtime.presetStore.presets,
     storedActivePresetId: runtime.presetStore.activePresetId,
@@ -357,7 +357,7 @@ export async function importFileToActivePreset() {
     cliModels: catalogState.cliModels,
     configuredProviderIds: catalogState.configuredProviderIds,
     customProviderIds: catalogState.customProviderIds,
-    providerNamesByConfigId: catalogState.providerNamesByConfigId,
+    providerDisplayNamesById: catalogState.providerDisplayNamesById,
     currentOmoConfig: runtime.omoState.config,
     storedPresets: runtime.presetStore.presets,
     storedActivePresetId: runtime.presetStore.activePresetId,

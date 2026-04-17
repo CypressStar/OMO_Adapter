@@ -162,4 +162,67 @@ describe("PresetEditor", () => {
     expect(reasoningSelect).not.toHaveTextContent("none");
     expect(reasoningSelect).not.toHaveTextContent("minimal");
   });
+
+  test("shows custom provider display names but keeps raw provider ids for selection", () => {
+    const onChange = vi.fn();
+
+    render(
+      <PresetEditor
+        providerCatalog={{
+          providerOrder: ["cch"],
+          providers: {
+            cch: {
+              id: "cch",
+              label: "oai",
+              source: "custom",
+              models: ["gpt-5.4"]
+            }
+          }
+        }}
+        draftPreset={{
+          id: "default",
+          name: "Default",
+          description: "desc",
+          agentModels: {
+            sisyphus: "cch/gpt-5.4",
+            hephaestus: "cch/gpt-5.4",
+            oracle: "cch/gpt-5.4",
+            librarian: "cch/gpt-5.4",
+            explore: "cch/gpt-5.4",
+            "multimodal-looker": "cch/gpt-5.4",
+            prometheus: "cch/gpt-5.4",
+            metis: "cch/gpt-5.4",
+            momus: "cch/gpt-5.4",
+            atlas: "cch/gpt-5.4",
+            "sisyphus-junior": "cch/gpt-5.4"
+          },
+          agentReasoningEfforts: {}
+        }}
+        drift={null}
+        showDriftWarning={false}
+        canApply
+        onChange={onChange}
+        onSave={vi.fn()}
+        onApply={vi.fn()}
+        onReapply={vi.fn()}
+        onImport={vi.fn()}
+      />
+    );
+
+    expect(
+      screen.getAllByRole("option", { name: "oai" }).length
+    ).toBeGreaterThan(0);
+
+    fireEvent.change(screen.getByLabelText("Hephaestus Provider"), {
+      target: { value: "cch" }
+    });
+
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentModels: expect.objectContaining({
+          hephaestus: "cch/gpt-5.4"
+        })
+      })
+    );
+  });
 });

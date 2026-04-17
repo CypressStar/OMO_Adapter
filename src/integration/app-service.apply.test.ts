@@ -74,7 +74,7 @@ describe("applyActivePreset", () => {
     mocks.readOpenCodeConfig.mockResolvedValue({
       configuredProviderIds: ["openai"],
       customProviderIds: [],
-      providerNamesByConfigId: {}
+      providerDisplayNamesById: {}
     });
     mocks.readOmoConfig.mockResolvedValue({
       exists: true,

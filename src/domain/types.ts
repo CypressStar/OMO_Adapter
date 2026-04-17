@@ -29,6 +29,7 @@ export interface OfficialAgentDefinition {
 
 export interface ProviderEntry {
   id: string;
+  label?: string;
   source: ProviderSource;
   models: string[];
 }

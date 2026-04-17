@@ -23,16 +23,17 @@ describe("buildProviderCatalog", () => {
         "bosson/claude-opus-4-6",
         "bosson/claude-sonnet-4-5-20250929"
       ],
-      customProviderIds: ["claude-proxy"],
-      providerNamesByConfigId: {
+      customProviderIds: ["bosson"],
+      providerDisplayNamesById: {
         bosson: "claude-proxy"
       }
     });
 
     expect(catalog.providers.anthropic.source).toBe("official");
     expect(catalog.providers.openai.source).toBe("official");
-    expect(catalog.providers["claude-proxy"].source).toBe("custom");
-    expect(catalog.providers["claude-proxy"].models).toEqual([
+    expect(catalog.providers.bosson.source).toBe("custom");
+    expect(catalog.providers.bosson.label).toBe("claude-proxy");
+    expect(catalog.providers.bosson.models).toEqual([
       "claude-opus-4-6",
       "claude-sonnet-4-5-20250929"
     ]);
@@ -46,7 +47,7 @@ describe("buildProviderCatalog", () => {
         "anthropic/claude-opus-4-6"
       ],
       customProviderIds: [],
-      providerNamesByConfigId: {}
+      providerDisplayNamesById: {}
     });
 
     expect(catalog.providerOrder).toEqual(["anthropic", "openai"]);
@@ -61,7 +62,7 @@ describe("resolveProviderModelRefStatus", () => {
     const catalog = buildProviderCatalog({
       cliModels: ["openai/gpt-5.4@opencode-high"],
       customProviderIds: [],
-      providerNamesByConfigId: {}
+      providerDisplayNamesById: {}
     });
 
     expect(
@@ -83,11 +84,11 @@ describe("resolveProviderModelRefStatus", () => {
     });
   });
 
-  test("keeps legacy refs untouched when only the new provider name is catalogued", () => {
+  test("treats provider display names as labels only and keeps raw ids valid", () => {
     const catalog = buildProviderCatalog({
       cliModels: ["cch/gpt-5.4"],
-      customProviderIds: ["oai"],
-      providerNamesByConfigId: {
+      customProviderIds: ["cch"],
+      providerDisplayNamesById: {
         cch: "oai"
       }
     });
@@ -95,7 +96,7 @@ describe("resolveProviderModelRefStatus", () => {
     expect(
       resolveProviderModelRefStatus(catalog, "cch/gpt-5.4")
     ).toEqual({
-      kind: "unsupported-provider",
+      kind: "supported",
       rawValue: "cch/gpt-5.4",
       providerId: "cch",
       modelId: "gpt-5.4"

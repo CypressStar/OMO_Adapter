@@ -195,7 +195,7 @@ export function PresetEditor(props: PresetEditorProps) {
                           )
                           .map((item) => (
                             <option key={item} value={item}>
-                              {item}
+                              {props.providerCatalog.providers[item]?.label ?? item}
                             </option>
                           ))}
                       </optgroup>
@@ -207,7 +207,7 @@ export function PresetEditor(props: PresetEditorProps) {
                           )
                           .map((item) => (
                             <option key={item} value={item}>
-                              {item}
+                              {props.providerCatalog.providers[item]?.label ?? item}
                             </option>
                           ))}
                       </optgroup>

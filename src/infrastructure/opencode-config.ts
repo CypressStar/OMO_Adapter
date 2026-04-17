@@ -19,7 +19,7 @@ const openCodeConfigSchema = z
 export function parseOpenCodeConfig(content: string) {
   const parsed = openCodeConfigSchema.parse(JSON.parse(content));
   const providerEntries = Object.entries(parsed.provider ?? {});
-  const providerNamesByConfigId = Object.fromEntries(
+  const providerDisplayNamesById = Object.fromEntries(
     providerEntries.map(([providerId, value]) => [
       providerId,
       typeof value.name === "string" && value.name.trim().length > 0
@@ -30,13 +30,13 @@ export function parseOpenCodeConfig(content: string) {
 
   return {
     configuredProviderIds: providerEntries
-      .map(([providerId]) => providerNamesByConfigId[providerId])
+      .map(([providerId]) => providerId)
       .sort((left, right) => left.localeCompare(right)),
     customProviderIds: providerEntries
       .filter(([, value]) => typeof value.npm === "string" && value.npm.length > 0)
-      .map(([providerId]) => providerNamesByConfigId[providerId])
+      .map(([providerId]) => providerId)
       .sort((left, right) => left.localeCompare(right)),
-    providerNamesByConfigId
+    providerDisplayNamesById
   };
 }
 
@@ -51,7 +51,7 @@ export async function readOpenCodeConfig() {
       return {
         configuredProviderIds: [],
         customProviderIds: [],
-        providerNamesByConfigId: {}
+        providerDisplayNamesById: {}
       };
     }
 

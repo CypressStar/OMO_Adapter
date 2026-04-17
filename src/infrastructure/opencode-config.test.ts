@@ -42,9 +42,9 @@ describe("parseOpenCodeConfig", () => {
       }
     }`);
 
-    expect(result.customProviderIds).toEqual(["claude-proxy"]);
-    expect(result.configuredProviderIds).toEqual(["claude-proxy", "openai"]);
-    expect(result.providerNamesByConfigId).toEqual({
+    expect(result.customProviderIds).toEqual(["bosson"]);
+    expect(result.configuredProviderIds).toEqual(["bosson", "openai"]);
+    expect(result.providerDisplayNamesById).toEqual({
       bosson: "claude-proxy",
       openai: "openai"
     });
@@ -60,7 +60,7 @@ describe("parseOpenCodeConfig", () => {
     }`);
 
     expect(result.customProviderIds).toEqual(["cch"]);
-    expect(result.providerNamesByConfigId).toEqual({
+    expect(result.providerDisplayNamesById).toEqual({
       cch: "cch"
     });
   });

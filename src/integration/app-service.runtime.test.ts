@@ -81,7 +81,7 @@ describe("app-service runtime behavior", () => {
     mocks.readOpenCodeConfig.mockResolvedValue({
       configuredProviderIds: ["openai"],
       customProviderIds: [],
-      providerNamesByConfigId: {}
+      providerDisplayNamesById: {}
     });
     mocks.readOmoConfig.mockResolvedValue({
       exists: true,
@@ -163,12 +163,12 @@ describe("app-service runtime behavior", () => {
       .mockResolvedValueOnce({
         configuredProviderIds: ["openai"],
         customProviderIds: [],
-        providerNamesByConfigId: {}
+        providerDisplayNamesById: {}
       })
       .mockResolvedValueOnce({
         configuredProviderIds: ["openai", "anthropic"],
         customProviderIds: [],
-        providerNamesByConfigId: {}
+        providerDisplayNamesById: {}
       });
 
     const firstSnapshot = await loadSnapshot();

@@ -27,16 +27,19 @@ const demoSnapshot: AppSnapshot = {
     providers: {
       anthropic: {
         id: "anthropic",
+        label: "anthropic",
         source: "official",
         models: ["claude-sonnet-4-5", "claude-opus-4-6"]
       },
       openai: {
         id: "openai",
+        label: "openai",
         source: "official",
         models: ["gpt-5.4@opencode-medium", "gpt-5.4@opencode-high"]
       },
       bosson: {
         id: "bosson",
+        label: "bosson",
         source: "custom",
         models: ["claude-opus-4-6"]
       }
